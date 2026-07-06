@@ -1,5 +1,4 @@
 # docker-compose.yml
-version: "3.9"
 
 services:
   # ── Kafka Stack ──────────────────────────────────────────
@@ -18,7 +17,10 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
   # ── Prefect ───────────────────────────────────────────────
@@ -33,7 +35,8 @@ services:
   prefect-worker:
     image: prefecthq/prefect:2.14.0-python3.10
     command: >
-      sh -c "prefect work-pool create --type process lab28-worker 2>/dev/null || true
+      sh -c "sleep 15 &&
+      prefect work-pool create --type process lab28-worker 2>/dev/null || true
       && prefect worker start -p lab28-worker -n lab28-worker"
     environment:
       PREFECT_API_URL: http://prefect-orion:4200/api
@@ -42,6 +45,7 @@ services:
       - ./delta-lake:/opt/delta-lake
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on: [prefect-orion, kafka]
+    restart: unless-stopped
 
   # ── Vector Store (Qdrant) ─────────────────────────────────
   qdrant:
@@ -79,10 +83,23 @@ services:
     ports:
       - "8000:8000"
     environment:
-      VLLM_URL: ${VLLM_NGROK_URL}
+      VLLM_URL: ${VLLM_NGROK_URL:-}
       QDRANT_URL: http://qdrant:6333
       REDIS_URL: redis://redis:6379
     depends_on: [qdrant, redis]
+
+  integration-worker:
+    build: ./integration-worker
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      QDRANT_URL: http://qdrant:6333
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      DELTA_PATH: /opt/delta-lake/raw
+    volumes:
+      - ./delta-lake:/opt/delta-lake
+    depends_on: [kafka, qdrant, redis]
+    restart: unless-stopped
 
 volumes:
   prefect_data:

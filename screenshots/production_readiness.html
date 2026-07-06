@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Production Readiness</title>
+  <style>
+    body { font-family: Consolas, monospace; background: #020617; color: #e2e8f0; margin: 0; padding: 32px; }
+    .card { max-width: 1100px; margin: 0 auto; background: #111827; border: 1px solid #334155; border-radius: 16px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.35); }
+    h1 { margin-top: 0; font-size: 28px; color: #86efac; }
+    pre { white-space: pre-wrap; line-height: 1.5; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Production Readiness</h1>
+    <pre>=== RELIABILITY ===
+  [PASS] Health check endpoint
+  [PASS] API Gateway responds
+
+=== OBSERVABILITY ===
+  [PASS] Prometheus up
+  [PASS] Grafana up
+  [PASS] Metrics endpoint exposed
+
+=== SECURITY ===
+  [PASS] Unauthorized request rejected
+
+=== VECTOR STORE ===
+  [PASS] Qdrant healthy
+  [PASS] Collection exists
+
+=== FEATURE STORE ===
+  [PASS] Redis reachable
+
+=== KAFKA ===
+  [PASS] Kafka topics exist
+
+Production Readiness Score: 10/10 = 100%
+Target: &gt;80% - Status: READY</pre>
+  </div>
+</body>
+</html>

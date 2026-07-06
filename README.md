@@ -31,10 +31,16 @@ Kaggle (GPU T4/P100):
 
 ## Quick Start
 
+### Chế độ chạy của repo này
+
+- Nếu đã có `VLLM_NGROK_URL`, API Gateway sẽ gọi Kaggle/vLLM thật.
+- Nếu chưa có `VLLM_NGROK_URL`, API Gateway vẫn chạy ở `local-fallback` để smoke test và demo local không bị block.
+- Service `integration-worker` sẽ tự động đồng bộ Kafka -> Delta Lake -> Redis -> Qdrant để các kiểm tra end-to-end có dữ liệu sẵn.
+
 ### 1. Khởi động Local Stack
 
 ```bash
-cd lab28
+copy .env.example .env
 docker compose up -d
 docker compose ps  # Kiểm tra tất cả services Up
 ```
@@ -45,6 +51,8 @@ docker compose ps  # Kiểm tra tất cả services Up
 - Qdrant: http://localhost:6333/dashboard
 - Prometheus: http://localhost:9090
 - API Gateway: http://localhost:8000
+
+Khi stack khởi động lần đầu, `integration-worker` sẽ seed một ít dữ liệu mẫu để Qdrant và Redis có dữ liệu ngay.
 
 ### 2. Setup Kaggle GPU
 
@@ -293,6 +301,8 @@ pip install -r requirements.txt
 python kafka_to_delta.py
 ```
 
+Lưu ý: repo này đã có `integration-worker` chạy nền để bảo đảm đường đi dữ liệu local hoạt động ổn định cho smoke test. Flow Prefect vẫn giữ lại để bạn demo orchestration trong UI.
+
 ### 5. Ingest Data vào Kafka
 
 ```bash
@@ -368,7 +378,7 @@ docker compose logs prefect-worker
 **Kafka consumer lag:**
 ```bash
 # Kiểm tra topic
-docker exec lab28-kafka-1 kafka-topics --list --bootstrap-server localhost:9092
+docker compose exec -T kafka kafka-topics --list --bootstrap-server kafka:29092
 ```
 
 ## Nộp Bài

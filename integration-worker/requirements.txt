@@ -1,0 +1,7 @@
+kafka-python==2.0.2
+numpy<2
+pandas==2.1.0
+pyarrow==14.0.0
+qdrant-client==1.9.1
+redis==5.0.1
+requests==2.31.0
